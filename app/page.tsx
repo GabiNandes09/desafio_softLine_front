@@ -2,10 +2,9 @@
 
 import Image from "next/image"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import { InputWithLabel } from "./_components/InputWithLabel"
 
 export default function LoginPage() {
   const [username, setUsername] = useState("")
@@ -35,27 +34,21 @@ export default function LoginPage() {
           <CardTitle className="text-2xl text-center">Login</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="username">Username</Label>
-            <Input
-              id="username"
-              placeholder="Digite seu nome de usuário"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-2"
-            />
-          </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Digite sua senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-2"
-            />
-          </div>
+          <InputWithLabel
+            id="username"
+            labelText={"Username"}
+            hint={"Digite seu nome de usuário"}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <InputWithLabel
+            id="password"
+            labelText={"Password"}
+            hint={"Digite sua senha"}
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
           <div className="flex flex-col gap-2 pt-4">
             <Button onClick={handleLogin}>Login</Button>
             <Button variant="outline" onClick={handleRegister}>Registrar</Button>
