@@ -8,6 +8,7 @@ interface InputWithLabelProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   id?: string
   type?: string
+  hasError?: boolean
 }
 
 export function InputWithLabel({
@@ -16,10 +17,11 @@ export function InputWithLabel({
   value,
   onChange,
   id = "input",
-  type = "text"
+  type = "text",
+  hasError,
 }: InputWithLabelProps) {
   return (
-    <div>
+    <div className="space-y-1">
       <Label htmlFor={id}>{labelText}</Label>
       <Input
         id={id}
@@ -27,8 +29,11 @@ export function InputWithLabel({
         placeholder={hint}
         value={value}
         onChange={onChange}
-        className="mt-2"
+        className={`mt-2 ${hasError ? "border-red-500" : ""}`}
       />
+      {hasError && (
+        <p className="text-red-500 text-sm">Campo obrigatório</p>
+      )}
     </div>
   )
 }
