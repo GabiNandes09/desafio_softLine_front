@@ -41,23 +41,34 @@ export default function RegisterPage() {
             isConfirmPasswordValid &&
             arePasswordsEqual
         ) {
-            console.log(username.trim(), password.trim())
-            const response = await fetch('http://192.168.0.11:8080/auth/register', {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    username: username.trim(),
-                    password: password.trim(),
-                }),
-            })
+            try {
+                const response = await fetch('http://localhost:8080/auth/register', {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        username: username.trim(),
+                        password: password.trim(),
+                    }),
+                })
 
-            return response.json()
+                if (!response.ok) {
+                    const errorData = await response.json()
+                    toast.error(errorData?.message || "Erro ao registrar")
+                    return
+                }
+
+                toast.success("Cadastro realizado com sucesso")
+                router.push("/")
+
+            } catch (error) {
+                toast.error("Erro de conexão com o servidor")
+            }
         }
     }
+
 
 
     return (
