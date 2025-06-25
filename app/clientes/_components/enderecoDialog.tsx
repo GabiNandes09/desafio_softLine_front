@@ -10,16 +10,6 @@ import { Button } from "@/components/ui/button"
 import { useState, useEffect, useRef } from "react"
 import { InputWithLabel } from "@/app/_components/InputWithLabel"
 
-interface Endereco {
-  cep: string
-  rua: string
-  numero: string
-  complemento: string
-  bairro: string
-  cidade: string
-  estado: string
-}
-
 interface EnderecoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -28,13 +18,13 @@ interface EnderecoDialogProps {
 }
 
 const campos = [
-  { id: "cep", label: "CEP", hint: "Digite o CEP", required: true },
-  { id: "rua", label: "Rua", hint: "Digite o nome da rua", required: true },
-  { id: "numero", label: "Número", hint: "Digite o número", required: true },
-  { id: "complemento", label: "Complemento", hint: "Digite complemento (opcional)", required: false },
-  { id: "bairro", label: "Bairro", hint: "Digite o bairro", required: true },
-  { id: "cidade", label: "Cidade", hint: "Digite a cidade", required: true },
-  { id: "estado", label: "Estado", hint: "Digite o estado", required: true },
+  { id: "zipCode", label: "CEP", hint: "Digite o CEP", required: true },
+  { id: "street", label: "Rua", hint: "Digite o nome da rua", required: true },
+  { id: "number", label: "Número", hint: "Digite o número", required: true },
+  { id: "neighborhood", label: "Bairro", hint: "Digite o bairro", required: true },
+  { id: "city", label: "Cidade", hint: "Digite a cidade", required: true },
+  { id: "state", label: "Estado", hint: "Digite o estado", required: true },
+  { id: "country", label: "País", hint: "Digite o país", required: true },
 ]
 
 export function EnderecoDialog({
@@ -77,20 +67,20 @@ export function EnderecoDialog({
         setCepError("CEP não encontrado")
         setEndereco((prev) => ({
           ...prev,
-          rua: "",
-          bairro: "",
-          cidade: "",
-          estado: "",
+          street: "",
+          neighborhood: "",
+          city: "",
+          state: "",
         }))
       } else {
         setEndereco((prev) => ({
           ...prev,
-          rua: data.logradouro || "",
-          bairro: data.bairro || "",
-          cidade: data.localidade || "",
-          estado: data.uf || "",
+          street: data.logradouro || "",
+          neighborhood: data.bairro || "",
+          city: data.localidade || "",
+          state: data.uf || "",
+          country: "Brasil"
         }))
-        // ✅ Foca no campo número após o sucesso
         setTimeout(() => numeroRef.current?.focus(), 50)
       }
     } catch (error) {
@@ -126,7 +116,7 @@ export function EnderecoDialog({
         {cepError && <p className="text-sm text-red-500">{cepError}</p>}
         <div className="space-y-4">
           {campos.map(({ id, label, hint }) => {
-            const disabled = loadingCep && id !== "cep"
+            const disabled = loadingCep && id !== "zipCode"
             return (
               <InputWithLabel
                 key={id}
@@ -135,10 +125,10 @@ export function EnderecoDialog({
                 hint={hint}
                 value={endereco[id as keyof Endereco]}
                 onChange={(e) => handleChange(id as keyof Endereco, e.target.value)}
-                onBlur={id === "cep" ? () => buscarCep(endereco.cep) : undefined}
+                onBlur={id === "zipCode" ? () => buscarCep(endereco.zipCode) : undefined}
                 hasError={!!errors[id]}
                 disabled={disabled}
-                ref={id === "numero" ? numeroRef : undefined}
+                ref={id === "number" ? numeroRef : undefined}
               />
             )
           })}

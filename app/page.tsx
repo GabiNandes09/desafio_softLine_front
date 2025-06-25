@@ -32,7 +32,7 @@ export default function LoginPage() {
 
     if (isUsernameValid && isPasswordValid) {
       try {
-        const response = await fetch("http://172.28.255.81:8080/auth/login", {
+        const response = await fetch("http://localhost:8080/auth/login", {
           method: "POST",
           headers: {
             Accept: "application/json",

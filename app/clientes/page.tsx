@@ -1,6 +1,5 @@
 'use client'
 
-import Image from "next/image"
 import {
     Table,
     TableBody,
@@ -12,43 +11,20 @@ import {
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { HeaderOptions } from "../_components/HeaderOptions"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { DetailsDialog } from "./_components/detailsDialog"
-
-interface Cliente {
-    codigo: string
-    nome: string
-    fantasia: string
-    documento: string
-    endereco: string
-}
-
-const clientes: Cliente[] = [
-    {
-        codigo: "001",
-        nome: "Gabriel Fernandes",
-        fantasia: "SoftLine",
-        documento: "123.456.789-00",
-        endereco: "12345-678, Rua A, 123, , Centro, São Paulo, SP"
-    },
-    {
-        codigo: "002",
-        nome: "Ana Silva",
-        fantasia: "Beleza & Cia",
-        documento: "987.654.321-00",
-        endereco: "87654-321, Av. B, 456, , Bairro Industrial, Rio de Janeiro, RJ"
-    }
-]
-
-
+import { toast } from "sonner"
+import { Cliente } from "../src/types/Cliente"
 
 
 export default function ClientesPage() {
     const [open, setOpen] = useState(false)
     const [clienteSelecionado, setClienteSelecionado] = useState<Cliente | null>(null)
     const [novoOpen, setNovoOpen] = useState(false)
+    const [clientes, setClientes] = useState<Cliente[]>([])
 
     const router = useRouter()
+
     const toOptions = () => {
         router.push("/pageOptions")
     }
@@ -58,19 +34,48 @@ export default function ClientesPage() {
         setOpen(true)
     }
 
+    const fetchClientes = async () => {
+        try {
+            const token = localStorage.getItem("authToken")
+            if (!token) {
+                toast.error("Token não encontrado. Faça login novamente.")
+                router.push("/")
+                return
+            }
+
+            const response = await fetch("http://localhost:8080/clients", {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            })
+
+            if (!response.ok) {
+                throw new Error("Erro ao buscar clientes")
+            }
+
+            const data: Cliente[] = await response.json()
+            setClientes(data)
+        } catch (error) {
+            toast.error("Erro ao carregar lista de clientes")
+            console.error(error)
+        }
+    }
+
+    useEffect(() => {
+        fetchClientes()
+    }, [])
+
     return (
         <div className="min-h-screen bg-gray-100 px-4 py-8">
-
             <HeaderOptions onOptionsClick={toOptions} />
 
             <div className="max-w-[70%] mx-auto mb-4 flex items-center justify-between">
                 <h1 className="text-2xl font-semibold text-gray-800">Lista de Clientes</h1>
-                <Button className="bg-green-600"
-                    onClick={() => setNovoOpen(true)}>
+                <Button className="bg-green-600" onClick={() => setNovoOpen(true)}>
                     Adicionar Cliente
                 </Button>
             </div>
-
 
             <div className="border rounded-lg shadow-md overflow-auto max-w-[90%] mx-auto bg-white">
                 <Table>
@@ -86,15 +91,15 @@ export default function ClientesPage() {
                     <TableBody>
                         {clientes.map((cliente) => (
                             <TableRow
-                                key={cliente.codigo}
+                                key={cliente.id}
                                 className="hover:bg-gray-50 transition-colors"
                                 onClick={() => handleRowClick(cliente)}
                             >
-                                <TableCell>{cliente.codigo}</TableCell>
-                                <TableCell>{cliente.nome}</TableCell>
-                                <TableCell>{cliente.fantasia}</TableCell>
-                                <TableCell>{cliente.documento}</TableCell>
-                                <TableCell>{cliente.endereco}</TableCell>
+                                <TableCell>{cliente.id}</TableCell>
+                                <TableCell>{cliente.name}</TableCell>
+                                <TableCell>{cliente.fantasyName}</TableCell>
+                                <TableCell>{cliente.document}</TableCell>
+                                <TableCell>{cliente.address.city}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -105,6 +110,8 @@ export default function ClientesPage() {
                 open={open}
                 onOpenChange={setOpen}
                 clienteSelecionado={clienteSelecionado}
+                onClienteAdicionado={fetchClientes}
+                onClienteDeletado={fetchClientes}
             />
 
             <DetailsDialog
@@ -112,6 +119,7 @@ export default function ClientesPage() {
                 onOpenChange={setNovoOpen}
                 clienteSelecionado={null}
                 isNew
+                onClienteAdicionado={fetchClientes} 
             />
         </div>
     )

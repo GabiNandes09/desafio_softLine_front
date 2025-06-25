@@ -1,3 +1,5 @@
+'use client'
+
 import {
     Dialog,
     DialogContent,
@@ -10,30 +12,16 @@ import { Pencil, Trash } from "lucide-react"
 import { useState, useEffect } from "react"
 import { ConfirmDeleteDialog } from "./confirmDeleteDialog"
 import { EnderecoDialog } from "./enderecoDialog"
-
-interface Cliente {
-    codigo: string
-    nome: string
-    fantasia: string
-    documento: string
-    endereco: string
-}
-
-interface Endereco {
-    cep: string
-    rua: string
-    numero: string
-    complemento: string
-    bairro: string
-    cidade: string
-    estado: string
-}
+import { toast } from "sonner"
+import { Cliente } from "@/app/src/types/Cliente"
 
 interface DetailsDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
     clienteSelecionado: Cliente | null
     isNew?: boolean
+    onClienteAdicionado?: () => void
+    onClienteDeletado?: () => void
 }
 
 export function DetailsDialog({
@@ -41,97 +29,141 @@ export function DetailsDialog({
     onOpenChange,
     clienteSelecionado,
     isNew = false,
+    onClienteAdicionado,
+    onClienteDeletado,
 }: DetailsDialogProps) {
     const [isEditing, setIsEditing] = useState(false)
     const [clienteEditado, setClienteEditado] = useState<Cliente | null>(null)
     const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
     const [enderecoDialogOpen, setEnderecoDialogOpen] = useState(false)
-    const [enderecoEditado, setEnderecoEditado] = useState<Endereco>({
-        cep: "",
-        rua: "",
-        numero: "",
-        complemento: "",
-        bairro: "",
-        cidade: "",
-        estado: "",
+    const [enderecoEditado, setEnderecoEditado] = useState({
+        zipCode: "",
+        street: "",
+        number: "",
+        neighborhood: "",
+        city: "",
+        state: "",
+        country: ""
     })
 
     useEffect(() => {
         if (isNew) {
             setClienteEditado({
-                codigo: "",
-                nome: "",
-                fantasia: "",
-                documento: "",
-                endereco: "",
+                id: "",
+                name: "",
+                fantasyName: "",
+                document: "",
+                address: {
+                    zipCode: "",
+                    street: "",
+                    number: "",
+                    neighborhood: "",
+                    city: "",
+                    state: "",
+                    country: ""
+                }
+            })
+            setEnderecoEditado({
+                zipCode: "",
+                street: "",
+                number: "",
+                neighborhood: "",
+                city: "",
+                state: "",
+                country: ""
             })
             setIsEditing(true)
-            setEnderecoEditado({
-                cep: "",
-                rua: "",
-                numero: "",
-                complemento: "",
-                bairro: "",
-                cidade: "",
-                estado: "",
-            })
         } else if (clienteSelecionado) {
             setClienteEditado(clienteSelecionado)
-            setEnderecoEditado(parseEndereco(clienteSelecionado.endereco))
+            setEnderecoEditado(clienteSelecionado.address)
             setIsEditing(false)
         }
     }, [clienteSelecionado, open, isNew])
-
-    function parseEndereco(enderecoStr: string): Endereco {
-        const parts = enderecoStr.split(",").map((p) => p.trim())
-        return {
-            cep: parts[0] || "",
-            rua: parts[1] || "",
-            numero: parts[2] || "",
-            complemento: parts[3] || "",
-            bairro: parts[4] || "",
-            cidade: parts[5] || "",
-            estado: parts[6] || "",
-        }
-    }
-
-    function formatEndereco(endereco: Endereco): string {
-        return [
-            endereco.cep,
-            endereco.rua,
-            endereco.numero,
-            endereco.complemento,
-            endereco.bairro,
-            endereco.cidade,
-            endereco.estado,
-        ].filter(Boolean).join(", ")
-    }
 
     const handleChange = (field: keyof Cliente, value: string) => {
         if (!clienteEditado) return
         setClienteEditado({ ...clienteEditado, [field]: value })
     }
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (!clienteEditado) return
-        clienteEditado.endereco = formatEndereco(enderecoEditado)
 
-        if (isNew) {
-            console.log("Criar cliente:", clienteEditado)
-        } else {
-            console.log("Cliente editado:", clienteEditado)
+        try {
+            const token = localStorage.getItem("authToken")
+            if (!token) {
+                toast.error("Token não encontrado. Faça login novamente.")
+                return
+            }
+
+            const clienteRequest = {
+                name: clienteEditado.name,
+                fantasyName: clienteEditado.fantasyName,
+                document: clienteEditado.document,
+                address: enderecoEditado,
+            }
+
+            const response = await fetch("http://localhost:8080/clients", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(clienteRequest),
+            })
+
+            if (!response.ok) {
+                const error = await response.json()
+                throw new Error(error.message || "Erro ao salvar cliente")
+            }
+
+            toast.success("Cliente criado com sucesso")
+            onOpenChange(false)
+            onClienteAdicionado?.()
+
+        } catch (error) {
+            console.error(error)
+            toast.error("Erro ao salvar cliente")
         }
-        onOpenChange(false)
     }
 
-    const handleDelete = () => {
-        console.log("Excluir cliente:", clienteSelecionado?.codigo)
-        setConfirmDeleteOpen(false)
-        onOpenChange(false)
+    const handleDelete = async () => {
+        if (!clienteSelecionado) return
+
+        try {
+            const token = localStorage.getItem("authToken")
+            if (!token) {
+                toast.error("Token não encontrado. Faça login novamente.")
+                return
+            }
+
+            const response = await fetch(`http://localhost:8080/clients/${clienteSelecionado.id}`, {
+                method: "DELETE",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            })
+
+            if (!response.ok) {
+                const error = await response.json()
+                throw new Error(error.message || "Erro ao deletar cliente")
+            }
+
+            toast.success("Cliente deletado com sucesso")
+            setConfirmDeleteOpen(false)
+            onOpenChange(false)
+            onClienteDeletado?.()
+
+        } catch (error) {
+            console.error(error)
+            toast.error("Erro ao deletar cliente")
+        }
     }
 
-    const handleEnderecoSave = (endereco: Endereco) => {
+    const handleEnderecoSave = (endereco: typeof enderecoEditado) => {
         setEnderecoEditado(endereco)
+        if (clienteEditado) {
+            setClienteEditado({ ...clienteEditado, address: endereco })
+        }
         setEnderecoDialogOpen(false)
     }
 
@@ -161,30 +193,39 @@ export function DetailsDialog({
 
                     {clienteEditado && (
                         <div className="space-y-3 text-sm">
-                            {["codigo", "nome", "fantasia", "documento"].map((field) => (
+                            {["name", "fantasyName", "document"].map((field) => (
                                 <div key={field}>
                                     <p className="font-semibold capitalize">{field}:</p>
                                     {isEditing ? (
                                         <Input
-                                            value={clienteEditado[field as keyof Cliente]}
+                                            value={clienteEditado[field as keyof Cliente] as string}
                                             onChange={(e) =>
                                                 handleChange(field as keyof Cliente, e.target.value)
                                             }
                                         />
                                     ) : (
-                                        <p>{clienteEditado[field as keyof Cliente]}</p>
+                                        <p>{clienteEditado.address.city}</p>
                                     )}
                                 </div>
                             ))}
 
                             <div>
-                                <p className="font-semibold capitalize">endereco:</p>
-                                <p>{clienteEditado.endereco}</p>
+                                <p className="font-semibold capitalize">Endereço:</p>
+                                <p>
+                                    {[
+                                        enderecoEditado.zipCode,
+                                        enderecoEditado.street,
+                                        enderecoEditado.number,
+                                        enderecoEditado.neighborhood,
+                                        enderecoEditado.city,
+                                        enderecoEditado.state,
+                                        enderecoEditado.country
+                                    ]
+                                        .filter(Boolean)
+                                        .join(", ")}
+                                </p>
                                 {isEditing && (
-                                    <Button
-                                        className="mt-2"
-                                        onClick={() => setEnderecoDialogOpen(true)}
-                                    >
+                                    <Button className="mt-2" onClick={() => setEnderecoDialogOpen(true)}>
                                         Editar Endereço
                                     </Button>
                                 )}
