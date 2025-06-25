@@ -1,6 +1,13 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+"use client"
+
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { InputWithLabel } from "@/app/_components/InputWithLabel"
 
 interface Endereco {
@@ -40,6 +47,7 @@ export function EnderecoDialog({
   const [errors, setErrors] = useState<Record<string, boolean>>({})
   const [loadingCep, setLoadingCep] = useState(false)
   const [cepError, setCepError] = useState("")
+  const numeroRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     setEndereco(enderecoInicial)
@@ -57,6 +65,7 @@ export function EnderecoDialog({
       setCepError("CEP inválido")
       return
     }
+
     setLoadingCep(true)
     setCepError("")
 
@@ -81,7 +90,8 @@ export function EnderecoDialog({
           cidade: data.localidade || "",
           estado: data.uf || "",
         }))
-        setCepError("")
+        // ✅ Foca no campo número após o sucesso
+        setTimeout(() => numeroRef.current?.focus(), 50)
       }
     } catch (error) {
       setCepError("Erro ao buscar CEP")
@@ -112,26 +122,26 @@ export function EnderecoDialog({
         <DialogHeader>
           <DialogTitle>Editar Endereço</DialogTitle>
         </DialogHeader>
-
+        {loadingCep && <p className="text-sm text-blue-500">Buscando endereço...</p>}
+        {cepError && <p className="text-sm text-red-500">{cepError}</p>}
         <div className="space-y-4">
-          {campos.map(({ id, label, hint }) => (
-            <InputWithLabel
-              key={id}
-              id={id}
-              labelText={label}
-              hint={hint}
-              value={endereco[id as keyof Endereco]}
-              onChange={(e) => handleChange(id as keyof Endereco, e.target.value)}
-              hasError={!!errors[id]}
-              {...(id === "cep"
-                ? {
-                    onBlur: () => buscarCep(endereco.cep),
-                  }
-                : {})}
-            />
-          ))}
-          {loadingCep && <p className="text-sm text-blue-500">Buscando endereço...</p>}
-          {cepError && <p className="text-sm text-red-500">{cepError}</p>}
+          {campos.map(({ id, label, hint }) => {
+            const disabled = loadingCep && id !== "cep"
+            return (
+              <InputWithLabel
+                key={id}
+                id={id}
+                labelText={label}
+                hint={hint}
+                value={endereco[id as keyof Endereco]}
+                onChange={(e) => handleChange(id as keyof Endereco, e.target.value)}
+                onBlur={id === "cep" ? () => buscarCep(endereco.cep) : undefined}
+                hasError={!!errors[id]}
+                disabled={disabled}
+                ref={id === "numero" ? numeroRef : undefined}
+              />
+            )
+          })}
         </div>
 
         <div className="pt-6 flex justify-end gap-2">
