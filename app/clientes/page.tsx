@@ -30,17 +30,17 @@ const clientes: Cliente[] = [
         nome: "Gabriel Fernandes",
         fantasia: "SoftLine",
         documento: "123.456.789-00",
-        endereco: "Rua A, 123, Bairro Centro"
+        endereco: "12345-678, Rua A, 123, , Centro, São Paulo, SP"
     },
     {
         codigo: "002",
         nome: "Ana Silva",
         fantasia: "Beleza & Cia",
         documento: "987.654.321-00",
-        endereco: "Av. B, 456, Bairro Industrial"
-    },
-    // Adicione mais clientes aqui se desejar
+        endereco: "87654-321, Av. B, 456, , Bairro Industrial, Rio de Janeiro, RJ"
+    }
 ]
+
 
 
 
@@ -73,7 +73,7 @@ export default function ClientesPage() {
             </div>
 
 
-            <div className="border rounded-lg shadow-md overflow-auto max-w-[70%] mx-auto bg-white">
+            <div className="border rounded-lg shadow-md overflow-auto max-w-[90%] mx-auto bg-white">
                 <Table>
                     <TableHeader className="bg-gray-100">
                         <TableRow>
