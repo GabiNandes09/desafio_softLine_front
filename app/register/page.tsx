@@ -3,19 +3,44 @@
 import Image from "next/image"
 import { useState } from "react"
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { InputWithLabel } from "../_components/InputWithLabel"
+import { useRouter } from "next/navigation"
 
 export default function RegisterPage() {
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
+    const [usernameError, setUsernameError] = useState(false)
+    const [passwordError, setPasswordError] = useState(false)
+    const [confirmPasswordError, setConfirmPasswordError] = useState(false)
+    const [notEqualPasswordError, setNotEqualPasswordError] = useState(false)
+
+    const router = useRouter()
+    const toLogin = () => {
+        router.push("/")
+    }
 
     const handleRegister = () => {
-        console.log("Registrando:", { username, password })
-        // Lógica para registrar o usuário aqui
+        const isUsernameValid = username.trim() !== ""
+        const isPasswordValid = password.trim() !== ""
+        const isConfirmPasswordValid = confirmPassword.trim() !== ""
+        const arePasswordsEqual = password.trim() === confirmPassword.trim()
+
+        setUsernameError(!isUsernameValid)
+        setPasswordError(!isPasswordValid)
+        setConfirmPasswordError(!isConfirmPasswordValid)
+        setNotEqualPasswordError(!arePasswordsEqual)
+
+        if (
+            isUsernameValid &&
+            isPasswordValid &&
+            isConfirmPasswordValid &&
+            arePasswordsEqual
+        ) {
+            toLogin()
+        }
     }
 
     return (
@@ -37,6 +62,7 @@ export default function RegisterPage() {
                         labelText={"Username"}
                         hint={"Digite seu nome de usuário"}
                         value={username}
+                        hasError={usernameError}
                         onChange={(e) => setUsername(e.target.value)}
                     />
 
@@ -46,6 +72,7 @@ export default function RegisterPage() {
                         hint={"Digite sua senha"}
                         value={password}
                         type="password"
+                        hasError={passwordError}
                         onChange={(e) => setPassword(e.target.value)}
                     />
 
@@ -55,8 +82,15 @@ export default function RegisterPage() {
                         hint={"Digite sua senha"}
                         type="password"
                         value={confirmPassword}
+                        hasError={confirmPasswordError}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                     />
+
+                    {notEqualPasswordError && (
+                        <Label className="text-red-600">
+                            As senhas devem ser iguais
+                        </Label>
+                    )}
 
                     <Button className="w-full mt-4" onClick={handleRegister}>
                         Cadastrar

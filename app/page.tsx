@@ -20,11 +20,6 @@ export default function LoginPage() {
   }
 
   const handleLogin = () => {
-
-  }
-
-
-  const handleRegister = () => {
     const isUsernameValid = username.trim() !== ""
     const isPasswordValid = password.trim() !== ""
 
@@ -33,8 +28,13 @@ export default function LoginPage() {
 
     if (isUsernameValid && isPasswordValid) {
       console.log("Login:", { username, password })
-      toRegister()
+
     }
+  }
+
+
+  const handleRegister = () => {
+    toRegister()
   }
 
   return (
