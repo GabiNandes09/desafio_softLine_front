@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { HeaderOptions } from "../_components/HeaderOptions"
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { DetailsDialog } from "./_components/detailsDialog"
 
 interface Cliente {

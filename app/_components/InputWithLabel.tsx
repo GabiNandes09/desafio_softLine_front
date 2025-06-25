@@ -1,11 +1,13 @@
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import React from "react"
 
 interface InputWithLabelProps {
   labelText: string
   hint: string
   value: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void
   id?: string
   type?: string
   hasError?: boolean
@@ -16,6 +18,7 @@ export function InputWithLabel({
   hint,
   value,
   onChange,
+  onBlur,
   id = "input",
   type = "text",
   hasError,
@@ -29,6 +32,7 @@ export function InputWithLabel({
         placeholder={hint}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         className={`mt-2 ${hasError ? "border-red-500" : ""}`}
       />
       {hasError && (

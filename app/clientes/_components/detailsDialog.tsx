@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Pencil, Trash } from "lucide-react"
 import { useState, useEffect } from "react"
 import { ConfirmDeleteDialog } from "./confirmDeleteDialog"
-import { EnderecoDialog } from "./enderecoDialog" // importe o componente
+import { EnderecoDialog } from "./enderecoDialog"
 
 interface Cliente {
     codigo: string

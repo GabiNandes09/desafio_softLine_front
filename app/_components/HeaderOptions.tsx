@@ -13,8 +13,6 @@ export function HeaderOptions({ onOptionsClick }: HeaderOptionsProps) {
     const router = useRouter()
 
     const handleLogout = () => {
-        // Aqui você pode limpar tokens ou estado de autenticação, se necessário
-
         router.replace("/")
     }
 
