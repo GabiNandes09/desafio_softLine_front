@@ -19,7 +19,7 @@ export default function LoginPage() {
     router.push("/register")
   }
   const toOptions = () => {
-    router.push("/pageOptions")
+    router.replace("/pageOptions")
   }
 
   const handleLogin = () => {
