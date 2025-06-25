@@ -18,6 +18,9 @@ export default function LoginPage() {
   const toRegister = () => {
     router.push("/register")
   }
+  const toOptions = () => {
+    router.push("/pageOptions")
+  }
 
   const handleLogin = () => {
     const isUsernameValid = username.trim() !== ""
@@ -28,7 +31,7 @@ export default function LoginPage() {
 
     if (isUsernameValid && isPasswordValid) {
       console.log("Login:", { username, password })
-
+      toOptions()
     }
   }
 
