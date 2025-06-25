@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { InputWithLabel } from "../_components/InputWithLabel"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+
 
 export default function RegisterPage() {
     const [username, setUsername] = useState("")
@@ -22,7 +24,7 @@ export default function RegisterPage() {
         router.push("/")
     }
 
-    const handleRegister = () => {
+    const handleRegister = async () => {
         const isUsernameValid = username.trim() !== ""
         const isPasswordValid = password.trim() !== ""
         const isConfirmPasswordValid = confirmPassword.trim() !== ""
@@ -39,9 +41,24 @@ export default function RegisterPage() {
             isConfirmPasswordValid &&
             arePasswordsEqual
         ) {
-            toLogin()
+            console.log(username.trim(), password.trim())
+            const response = await fetch('http://192.168.0.11:8080/auth/register', {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    username: username.trim(),
+                    password: password.trim(),
+                }),
+            })
+
+            return response.json()
         }
     }
+
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
