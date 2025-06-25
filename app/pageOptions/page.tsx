@@ -11,7 +11,7 @@ export default function HomePage() {
   }
 
   const goToProdutos = () => {
-    router.push("/produtos")
+    router.push("/products")
   }
 
   return (
