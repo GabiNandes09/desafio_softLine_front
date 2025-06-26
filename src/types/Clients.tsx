@@ -4,5 +4,5 @@ export interface Cliente {
   name: string
   fantasyName: string
   document: string
-  address: Endereco
+  address: Address
 }

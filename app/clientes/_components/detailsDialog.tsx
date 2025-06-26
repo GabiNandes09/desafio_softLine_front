@@ -13,7 +13,8 @@ import { useState, useEffect } from "react"
 import { ConfirmDeleteDialog } from "./confirmDeleteDialog"
 import { EnderecoDialog } from "./enderecoDialog"
 import { toast } from "sonner"
-import { Cliente } from "@/app/src/types/Cliente"
+import { Cliente } from "@/src/types/Clients"
+import { createCliente, deleteCliente } from "@/src/services/ClientService"
 
 interface DetailsDialogProps {
     open: boolean
@@ -102,29 +103,17 @@ export function DetailsDialog({
                 address: enderecoEditado,
             }
 
-            const response = await fetch("http://localhost:8080/clients", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(clienteRequest),
-            })
-
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || "Erro ao salvar cliente")
-            }
+            await createCliente(clienteRequest, token)
 
             toast.success("Cliente criado com sucesso")
             onOpenChange(false)
             onClienteAdicionado?.()
-
         } catch (error) {
             console.error(error)
             toast.error("Erro ao salvar cliente")
         }
     }
+
 
     const handleDelete = async () => {
         if (!clienteSelecionado) return
@@ -136,28 +125,18 @@ export function DetailsDialog({
                 return
             }
 
-            const response = await fetch(`http://localhost:8080/clients/${clienteSelecionado.id}`, {
-                method: "DELETE",
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            })
-
-            if (!response.ok) {
-                const error = await response.json()
-                throw new Error(error.message || "Erro ao deletar cliente")
-            }
+            await deleteCliente(clienteSelecionado.id, token)
 
             toast.success("Cliente deletado com sucesso")
             setConfirmDeleteOpen(false)
             onOpenChange(false)
             onClienteDeletado?.()
-
         } catch (error) {
             console.error(error)
             toast.error("Erro ao deletar cliente")
         }
     }
+
 
     const handleEnderecoSave = (endereco: typeof enderecoEditado) => {
         setEnderecoEditado(endereco)

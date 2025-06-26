@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { InputWithLabel } from "../_components/InputWithLabel"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
+import { registerUser } from "@/src/services/AuthService"
 
 
 export default function RegisterPage() {
@@ -35,39 +36,17 @@ export default function RegisterPage() {
         setConfirmPasswordError(!isConfirmPasswordValid)
         setNotEqualPasswordError(!arePasswordsEqual)
 
-        if (
-            isUsernameValid &&
-            isPasswordValid &&
-            isConfirmPasswordValid &&
-            arePasswordsEqual
-        ) {
+        if (isUsernameValid && isPasswordValid && isConfirmPasswordValid && arePasswordsEqual) {
             try {
-                const response = await fetch('http://localhost:8080/auth/register', {
-                    method: "POST",
-                    headers: {
-                        Accept: "application/json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        username: username.trim(),
-                        password: password.trim(),
-                    }),
-                })
-
-                if (!response.ok) {
-                    const errorData = await response.json()
-                    toast.error(errorData?.message || "Erro ao registrar")
-                    return
-                }
-
+                await registerUser(username.trim(), password.trim())
                 toast.success("Cadastro realizado com sucesso")
                 router.push("/")
-
-            } catch (error) {
-                toast.error("Erro de conexão com o servidor")
+            } catch (error: any) {
+                toast.error(error.message || "Erro ao registrar")
             }
         }
     }
+
 
 
 

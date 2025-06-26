@@ -9,12 +9,13 @@ import {
 import { Button } from "@/components/ui/button"
 import { useState, useEffect, useRef } from "react"
 import { InputWithLabel } from "@/app/_components/InputWithLabel"
+import { buscarEnderecoPorCep } from "@/src/services/AddressService"
 
 interface EnderecoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  enderecoInicial: Endereco
-  onSave: (endereco: Endereco) => void
+  enderecoInicial: Address
+  onSave: (endereco: Address) => void
 }
 
 const campos = [
@@ -33,7 +34,7 @@ export function EnderecoDialog({
   enderecoInicial,
   onSave,
 }: EnderecoDialogProps) {
-  const [endereco, setEndereco] = useState<Endereco>(enderecoInicial)
+  const [endereco, setEndereco] = useState<Address>(enderecoInicial)
   const [errors, setErrors] = useState<Record<string, boolean>>({})
   const [loadingCep, setLoadingCep] = useState(false)
   const [cepError, setCepError] = useState("")
@@ -45,7 +46,7 @@ export function EnderecoDialog({
     setCepError("")
   }, [enderecoInicial, open])
 
-  const handleChange = (field: keyof Endereco, value: string) => {
+  const handleChange = (field: keyof Address, value: string) => {
     setEndereco((prev) => ({ ...prev, [field]: value }))
   }
 
@@ -60,40 +61,36 @@ export function EnderecoDialog({
     setCepError("")
 
     try {
-      const response = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`)
-      const data = await response.json()
+      const data = await buscarEnderecoPorCep(cepLimpo)
 
-      if (data.erro) {
-        setCepError("CEP não encontrado")
-        setEndereco((prev) => ({
-          ...prev,
-          street: "",
-          neighborhood: "",
-          city: "",
-          state: "",
-        }))
-      } else {
-        setEndereco((prev) => ({
-          ...prev,
-          street: data.logradouro || "",
-          neighborhood: data.bairro || "",
-          city: data.localidade || "",
-          state: data.uf || "",
-          country: "Brasil"
-        }))
-        setTimeout(() => numeroRef.current?.focus(), 50)
-      }
-    } catch (error) {
-      setCepError("Erro ao buscar CEP")
+      setEndereco((prev) => ({
+        ...prev,
+        street: data.logradouro || "",
+        neighborhood: data.bairro || "",
+        city: data.localidade || "",
+        state: data.uf || "",
+        country: "Brasil",
+      }))
+      setTimeout(() => numeroRef.current?.focus(), 50)
+    } catch (error: any) {
+      setCepError(error.message || "Erro ao buscar CEP")
+      setEndereco((prev) => ({
+        ...prev,
+        street: "",
+        neighborhood: "",
+        city: "",
+        state: "",
+      }))
     } finally {
       setLoadingCep(false)
     }
   }
 
+
   const validateFields = () => {
     const newErrors: Record<string, boolean> = {}
     campos.forEach(({ id, required }) => {
-      if (required && !endereco[id as keyof Endereco]?.trim()) {
+      if (required && !endereco[id as keyof Address]?.trim()) {
         newErrors[id] = true
       }
     })
@@ -123,8 +120,8 @@ export function EnderecoDialog({
                 id={id}
                 labelText={label}
                 hint={hint}
-                value={endereco[id as keyof Endereco]}
-                onChange={(e) => handleChange(id as keyof Endereco, e.target.value)}
+                value={endereco[id as keyof Address]}
+                onChange={(e) => handleChange(id as keyof Address, e.target.value)}
                 onBlur={id === "zipCode" ? () => buscarCep(endereco.zipCode) : undefined}
                 hasError={!!errors[id]}
                 disabled={disabled}

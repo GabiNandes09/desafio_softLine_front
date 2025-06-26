@@ -14,7 +14,8 @@ import { HeaderOptions } from "../_components/HeaderOptions"
 import { useState, useEffect } from "react"
 import { DetailsDialog } from "./_components/detailsDialog"
 import { toast } from "sonner"
-import { Cliente } from "../src/types/Cliente"
+import { Cliente } from "../../src/types/Clients"
+import { getClientes } from "@/src/services/ClientService"
 
 
 export default function ClientesPage() {
@@ -36,31 +37,19 @@ export default function ClientesPage() {
 
     const fetchClientes = async () => {
         try {
-            const token = localStorage.getItem("authToken")
-            if (!token) {
-                toast.error("Token não encontrado. Faça login novamente.")
-                router.push("/")
-                return
-            }
-
-            const response = await fetch("http://localhost:8080/clients", {
-                method: "GET",
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            })
-
-            if (!response.ok) {
-                throw new Error("Erro ao buscar clientes")
-            }
-
-            const data: Cliente[] = await response.json()
+            const data = await getClientes()
             setClientes(data)
-        } catch (error) {
-            toast.error("Erro ao carregar lista de clientes")
-            console.error(error)
+        } catch (error: any) {
+            if (error.message?.includes("Token")) {
+                toast.error(error.message)
+                router.push("/")
+            } else {
+                toast.error("Erro ao carregar lista de clientes")
+                console.error(error)
+            }
         }
     }
+
 
     useEffect(() => {
         fetchClientes()
@@ -119,7 +108,7 @@ export default function ClientesPage() {
                 onOpenChange={setNovoOpen}
                 clienteSelecionado={null}
                 isNew
-                onClienteAdicionado={fetchClientes} 
+                onClienteAdicionado={fetchClientes}
             />
         </div>
     )
